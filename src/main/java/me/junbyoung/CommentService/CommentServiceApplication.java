@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @SpringBootApplication
 @EnableJpaAuditing
+@RefreshScope
+@EnableFeignClients
 public class CommentServiceApplication {
 
 	public static void main(String[] args) {

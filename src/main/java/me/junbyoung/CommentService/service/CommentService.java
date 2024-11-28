@@ -8,6 +8,8 @@ import me.junbyoung.CommentService.repository.CommentRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
 import java.nio.file.AccessDeniedException;
 import java.util.List;
@@ -46,5 +48,16 @@ public class CommentService {
             throw new AccessDeniedException("You do not have permission to delete this comment.");
         }
         commentRepository.delete(comment);
+    }
+
+    @Transactional
+    @KafkaListener(topics = "post-events", groupId = "comment-service-group")
+    public void deleteComments(Long postId, Acknowledgment acknowledgment){
+        try {
+            commentRepository.deleteByPostId(postId);
+            acknowledgment.acknowledge(); // 처리 성공 시 오프셋 커밋
+        } catch (Exception e) {
+            LOGGER.error("Failed to delete comments for post ID {}: {}", postId, e.getMessage());
+        }
     }
 }

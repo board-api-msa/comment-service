@@ -2,14 +2,18 @@ package me.junbyoung.CommentService.controller;
 
 import jakarta.validation.Valid;
 import me.junbyoung.CommentService.model.Comment;
+import me.junbyoung.CommentService.model.User;
 import me.junbyoung.CommentService.payload.CommentRequest;
+import me.junbyoung.CommentService.payload.CommentResponse;
 import me.junbyoung.CommentService.service.CommentService;
+import me.junbyoung.CommentService.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.net.URI;
 import java.nio.file.AccessDeniedException;
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -18,10 +22,17 @@ public class CommentController {
     @Autowired
     private CommentService commentService;
 
+    @Autowired
+    private UserService userService;
+
     @GetMapping
-    public ResponseEntity<List<Comment>> getComments(@PathVariable Long postId) {
-        List<Comment> list = commentService.getAllComments(postId);
-        return ResponseEntity.ok(list);
+    public ResponseEntity<List<CommentResponse>> getComments(@PathVariable Long postId) {
+        List<CommentResponse> comments = new ArrayList<>();
+        for (Comment comment : commentService.getAllComments(postId)) {
+            User user = userService.getUserInfoByUserId(comment.getUserId());
+            comments.add(new CommentResponse(comment, user.getName()));
+        }
+        return ResponseEntity.ok(comments);
     }
 
     @PostMapping
